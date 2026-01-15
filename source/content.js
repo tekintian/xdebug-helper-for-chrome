@@ -1,221 +1,129 @@
-var xdebug = (function() {
-	// Set a cookie
-	function setCookie(name, value, days)
-	{
-		var exp = new Date();
-		exp.setTime(exp.getTime() + (days * 24 * 60 * 60 * 1000));
-		document.cookie = name + "=" + value + "; expires=" + exp.toGMTString() + "; path=/";
-	}
+const DEFAULT_TRIGGER_VALUE = 'vsc';
 
-	// Get the content in a cookie
-	function getCookie(name)
-	{
-		// Search for the start of the goven cookie
-		var prefix = name + "=",
-			cookieStartIndex = document.cookie.indexOf(prefix),
-			cookieEndIndex;
+const getCookie = name =>
+    document.cookie.split(';').find(cookie => cookie.trim().startsWith(`${name}=`))?.split('=')[1];
 
-		// If the cookie is not found return null
-		if (cookieStartIndex == -1)
-		{
-			return null;
-		}
+const setCookie = (name, value, days = 365) =>
+    document.cookie = `${name}=${value};expires=${new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString()};path=/`;
 
-		// Look for the end of the cookie
-		cookieEndIndex = document.cookie.indexOf(";", cookieStartIndex + prefix.length);
-		if (cookieEndIndex == -1)
-		{
-			cookieEndIndex = document.cookie.length;
-		}
+const deleteCookie = (name) => setCookie(name, null, -1);
 
-		// Extract the cookie content
-		return decodeURIComponent(document.cookie.substring(cookieStartIndex + prefix.length, cookieEndIndex));
-	}
+const getUrlParameter = name => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+};
 
-	// Remove a cookie
-	function deleteCookie(name)
-	{
-		setCookie(name, null, -1);
-	}
+const reloadWithSessionStart = (idekey) => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('XDEBUG_SESSION_START');
+    url.searchParams.set('XDEBUG_SESSION_START', idekey);
+    setTimeout(() => {
+        window.location.href = url.toString();
+    }, 100);
+};
 
-	// Get URL parameter
-	function getUrlParameter(name)
-	{
-		var regex = new RegExp('[?&]' + name + '=([^&#]*)', 'i');
-		var results = regex.exec(window.location.href);
-		return results === null ? null : results[1];
-	}
+const reloadWithoutSessionStart = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('XDEBUG_SESSION_START');
+    setTimeout(() => {
+        window.location.href = url.toString();
+    }, 100);
+};
 
-	// Reload page with XDEBUG_SESSION_START parameter
-	function reloadWithSessionStart(idekey)
-	{
-		var url = new URL(window.location.href);
-		// Clear any existing Xdebug URL parameters
-		url.searchParams.delete('XDEBUG_SESSION_START');
-		url.searchParams.delete('XDEBUG_PROFILE');
-		url.searchParams.delete('XDEBUG_TRACE');
-		// Set the new session start parameter
-		url.searchParams.set('XDEBUG_SESSION_START', idekey);
-		// Delay reload to allow message response to be sent
-		setTimeout(function() {
-			window.location.href = url.toString();
-		}, 100);
-	}
+const getStatusMap = (settings) => {
+    const { xdebugDebugTrigger, xdebugTraceTrigger, xdebugProfileTrigger, xdebugUseSessionStart } = settings;
+    return {
+        1: { name: 'XDEBUG_SESSION', trigger: xdebugDebugTrigger, useSessionStart: xdebugUseSessionStart === '1' },
+        2: { name: 'XDEBUG_PROFILE', trigger: xdebugProfileTrigger, useSessionStart: false },
+        3: { name: 'XDEBUG_TRACE', trigger: xdebugTraceTrigger, useSessionStart: false },
+    };
+};
 
-	// Public methods
-	var exposed = {
-		// Handles messages from other extension parts
-		messageListener : function(request, _sender, sendResponse)
-		{
-			var newStatus,
-				idekey = "vsc",
-				traceTrigger = idekey,
-				profileTrigger = idekey,
-				useSessionStart = false;
+const getCurrentStatus = async () => {
+    const settings = await new Promise(resolve => {
+        chrome.storage.local.get({
+            xdebugDebugTrigger: DEFAULT_TRIGGER_VALUE,
+            xdebugTraceTrigger: DEFAULT_TRIGGER_VALUE,
+            xdebugProfileTrigger: DEFAULT_TRIGGER_VALUE,
+            xdebugUseSessionStart: '0'
+        }, resolve);
+    });
 
-			// Use the IDE key from the request, if any is given
-			if (request.idekey)
-			{
-				idekey = request.idekey;
-			}
-			if (request.traceTrigger)
-			{
-				traceTrigger = request.traceTrigger;
-			}
-			if (request.profileTrigger)
-			{
-				profileTrigger = request.profileTrigger;
-			}
-			if (request.useSessionStart)
-			{
-				useSessionStart = request.useSessionStart;
-			}
+    const statusMap = getStatusMap(settings);
 
-			// Execute the requested command
-			if (request.cmd == "getStatus")
-			{
-				newStatus = exposed.getStatus(idekey, traceTrigger, profileTrigger, useSessionStart);
-			}
-			else if (request.cmd == "toggleStatus")
-			{
-				newStatus = exposed.toggleStatus(idekey, traceTrigger, profileTrigger, useSessionStart);
-			}
-			else if (request.cmd == "setStatus")
-			{
-				newStatus = exposed.setStatus(request.status, idekey, traceTrigger, profileTrigger, useSessionStart);
-			}
+    // Check for XDEBUG_SESSION_START parameter in URL (debugging mode)
+    if (statusMap[1].useSessionStart && getUrlParameter('XDEBUG_SESSION_START') === statusMap[1].trigger) {
+        return 1;
+    }
 
-			// Respond with the current status
-			sendResponse({ status: newStatus });
-		},
+    // Fallback to cookie method
+    for (const [idx, { name, trigger }] of Object.entries(statusMap)) {
+        if (getCookie(name) === trigger) {
+            return +idx;
+        }
+    }
 
-	// Get current state
-	getStatus : function(idekey, traceTrigger, profileTrigger, useSessionStart)
-	{
-		var status = 0;
+    return 0;
+};
 
-		// Check for XDEBUG_SESSION_START parameter in URL (debugging mode)
-		if (useSessionStart && getUrlParameter('XDEBUG_SESSION_START') == idekey)
-		{
-			status = 1;
-		}
-		// Fallback to cookie method for debugging
-		else if (getCookie("XDEBUG_SESSION") == idekey)
-		{
-			status = 1;
-		}
-		// Check for profiling
-		else if (getCookie("XDEBUG_PROFILE") == profileTrigger)
-		{
-			status = 2;
-		}
-		// Check for tracing
-		else if (getCookie("XDEBUG_TRACE") == traceTrigger)
-		{
-			status = 3;
-		}
+const setStatus = async (status) => {
+    const settings = await new Promise(resolve => {
+        chrome.storage.local.get({
+            xdebugDebugTrigger: DEFAULT_TRIGGER_VALUE,
+            xdebugTraceTrigger: DEFAULT_TRIGGER_VALUE,
+            xdebugProfileTrigger: DEFAULT_TRIGGER_VALUE,
+            xdebugUseSessionStart: '0'
+        }, resolve);
+    });
 
-		return status;
-	},
+    const statusMap = getStatusMap(settings);
 
-		// Toggle to the next state
-		toggleStatus : function(idekey, traceTrigger, profileTrigger, useSessionStart)
-		{
-			var nextStatus = (exposed.getStatus(idekey, traceTrigger, profileTrigger, useSessionStart) + 1) % 4;
-			return exposed.setStatus(nextStatus, idekey, traceTrigger, profileTrigger, useSessionStart);
-		},
+    // Delete all Xdebug cookies first
+    for (const { name } of Object.values(statusMap)) {
+        deleteCookie(name);
+    }
 
-	// Set the state
-	setStatus : function(status, idekey, traceTrigger, profileTrigger, useSessionStart)
-	{
-		if (status == 1)
-		{
-			// Set debugging on
-			if (useSessionStart)
-			{
-				// Use XDEBUG_SESSION_START parameter (Xdebug 3.x preferred method)
-				// Also set cookie to maintain session during navigation
-				setCookie("XDEBUG_SESSION", idekey, 365);
-				reloadWithSessionStart(idekey);
-			}
-			else
-			{
-				// Use cookie method (Xdebug 2.x compatible)
-				setCookie("XDEBUG_SESSION", idekey, 365);
-			}
-			// Clear other states
-			deleteCookie("XDEBUG_PROFILE");
-			deleteCookie("XDEBUG_TRACE");
-			deleteCookie("XDEBUG_DISABLED");
-		}
-		else if (status == 2)
-		{
-			// Set profiling on
-			deleteCookie("XDEBUG_SESSION");
-			setCookie("XDEBUG_PROFILE", profileTrigger, 365);
-			deleteCookie("XDEBUG_TRACE");
-			deleteCookie("XDEBUG_DISABLED");
-		}
-		else if (status == 3)
-		{
-			// Set tracing on
-			deleteCookie("XDEBUG_SESSION");
-			deleteCookie("XDEBUG_PROFILE");
-			setCookie("XDEBUG_TRACE", traceTrigger, 365);
-			deleteCookie("XDEBUG_DISABLED");
-		}
-		else
-		{
-			// Disable all Xdebug functions
-			deleteCookie("XDEBUG_SESSION");
-			deleteCookie("XDEBUG_PROFILE");
-			deleteCookie("XDEBUG_TRACE");
-			deleteCookie("XDEBUG_DISABLED");
-			setCookie("XDEBUG_DISABLED", 1);
+    if (status === 1) {
+        const { name, trigger, useSessionStart } = statusMap[1];
+        if (useSessionStart) {
+            setCookie(name, trigger);
+            reloadWithSessionStart(trigger);
+        } else {
+            setCookie(name, trigger);
+        }
+    } else if (status === 2) {
+        const { name, trigger } = statusMap[2];
+        setCookie(name, trigger);
+    } else if (status === 3) {
+        const { name, trigger } = statusMap[3];
+        setCookie(name, trigger);
+    } else {
+        setCookie('XDEBUG_DISABLED', '1');
+        if (statusMap[1].useSessionStart && getUrlParameter('XDEBUG_SESSION_START')) {
+            reloadWithoutSessionStart();
+        }
+    }
+};
 
-			// Remove XDEBUG_SESSION_START parameter from URL if present
-			if (useSessionStart && getUrlParameter('XDEBUG_SESSION_START'))
-			{
-				var url = new URL(window.location.href);
-				url.searchParams.delete('XDEBUG_SESSION_START');
-				// Delay reload to allow message response to be sent
-				setTimeout(function() {
-					window.location.href = url.toString();
-				}, 100);
-			}
-		}
-
-		// Return the new status
-		return exposed.getStatus(idekey, traceTrigger, profileTrigger, useSessionStart);
-	}
-	};
-
-	return exposed;
-})();
-
-// Attach the message listener
-chrome.runtime.onMessage.addListener(xdebug.messageListener);
-// 默认开启xdebug
-if(document.cookie.indexOf("XDEBUG_DISABLED=1")<0){
-	xdebug.setStatus(1,'vsc');
-}
+chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
+    (async () => {
+        try {
+            switch (msg.cmd) {
+                case 'getStatus':
+                    const status = await getCurrentStatus();
+                    sendResponse({ status });
+                    break;
+                case 'setStatus':
+                    await setStatus(msg.status);
+                    sendResponse({ status: msg.status });
+                    break;
+                default:
+                    sendResponse({ status: 0 });
+            }
+        } catch (error) {
+            console.log('Error in content script:', error);
+            sendResponse({ status: 0 });
+        }
+    })();
+    return true;
+});

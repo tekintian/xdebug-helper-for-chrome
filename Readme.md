@@ -5,6 +5,25 @@ Debugging, profiling and tracing PHP code with [Xdebug](http://xdebug.org/) is v
 Xdebug with cookies or adding POST/GET variables is way too hard. This extension will help you to enable/disable
 debugging, profiling and tracing of your PHP-code easily.
 
+## What's New in Version 2.1.0
+
+### Code Refactoring & Modernization
+- **Removed jQuery Dependency**: Migrated to native JavaScript for better performance and smaller bundle size
+- **Removed keymaster.js**: Removed keyboard shortcut library (keyboard shortcuts now handled by Chrome's native commands)
+- **Cleaner Codebase**: Simplified and refactored all JavaScript files for better maintainability
+- **Modern ES6+ Syntax**: Used async/await, arrow functions, and other modern JavaScript features
+
+### UI/UX Improvements
+- **Updated Popup Design**: Simplified popup with radio buttons and custom icons
+- **Removed External Dependencies**: No longer relies on Google Fonts or Material Icons
+- **System Font Stack**: Using native system fonts for better performance and consistency
+- **CSS-Based Icons**: Using background images for icons instead of icon fonts
+
+### Bug Fixes
+- **Fixed Message Port Closure Error**: Properly handles async operations to prevent "The message port closed before a response was received" errors
+- **Improved Error Handling**: Better error handling throughout the codebase
+- **Removed Auto-Enable Logic**: Removed automatic Xdebug enable on page load to prevent conflicts
+
 ## What's New in Version 2.0.0
 
 ### Manifest V3 Upgrade

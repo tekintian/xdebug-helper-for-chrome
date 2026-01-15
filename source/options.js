@@ -1,96 +1,64 @@
-(function () {
+const PREDEFINED_IDE_KEYS = ["vsc", "idea", "eclipse", "netbeans-xdebug", "macgdbp", "PHPSTORM"];
 
-	// setTimeout() return value
-	let disablePopupTimeout;
+document.addEventListener('DOMContentLoaded', () => {
+    const ideSelect = document.getElementById('ide');
+    const idekeyInput = document.getElementById('idekey');
+    const tracetriggerInput = document.getElementById('tracetrigger');
+    const profiletriggerInput = document.getElementById('profiletrigger');
+    const disablePopupCheckbox = document.getElementById('disable-popup');
+    const useSessionStartCheckbox = document.getElementById('use-session-start');
+    const saveButtons = document.querySelectorAll('.save-button');
 
-	// Predefined IDE keys
-	const PREDEFINED_IDE_KEYS = ["vsc", "idea", "eclipse", "netbeans-xdebug", "macgdbp", "PHPSTORM"];
+    const saveOptions = () => {
+        chrome.storage.local.set({
+            xdebugIdeKey: idekeyInput.value || 'vsc',
+            xdebugTraceTrigger: tracetriggerInput.value || '',
+            xdebugProfileTrigger: profiletriggerInput.value || '',
+            xdebugDisablePopup: disablePopupCheckbox.checked ? '1' : '0',
+            xdebugUseSessionStart: useSessionStartCheckbox.checked ? '1' : '0'
+        });
+    };
 
-	function save_options()
-	{
-		chrome.storage.local.set({
-			"xdebugIdeKey": document.getElementById("idekey").value,
-			"xdebugTraceTrigger": document.getElementById("tracetrigger").value,
-			"xdebugProfileTrigger": document.getElementById("profiletrigger").value,
-			"xdebugDisablePopup": document.getElementById('disable-popup').checked ? '1' : '0',
-			"xdebugUseSessionStart": document.getElementById('use-session-start').checked ? '1' : '0'
-		});
-	}
+    const restoreOptions = () => {
+        chrome.storage.local.get({
+            xdebugIdeKey: 'vsc',
+            xdebugTraceTrigger: '',
+            xdebugProfileTrigger: '',
+            xdebugDisablePopup: '0',
+            xdebugUseSessionStart: '0'
+        }, (result) => {
+            const ideKey = result.xdebugIdeKey || 'vsc';
+            const isPredefined = PREDEFINED_IDE_KEYS.includes(ideKey);
 
-	function restore_options()
-	{
-		chrome.storage.local.get(['xdebugIdeKey', 'xdebugTraceTrigger', 'xdebugProfileTrigger', 'xdebugDisablePopup', 'xdebugUseSessionStart'], function(result) {
-			// Restore IDE Key
-			idekey = result.xdebugIdeKey || "vsc";
+            ideSelect.value = isPredefined ? ideKey : 'null';
+            idekeyInput.disabled = isPredefined;
+            idekeyInput.value = ideKey;
+            tracetriggerInput.value = result.xdebugTraceTrigger || '';
+            profiletriggerInput.value = result.xdebugProfileTrigger || '';
+            disablePopupCheckbox.checked = result.xdebugDisablePopup === '1';
+            useSessionStartCheckbox.checked = result.xdebugUseSessionStart === '1';
+        });
+    };
 
-			const isPredefined = PREDEFINED_IDE_KEYS.includes(idekey);
+    ideSelect.addEventListener('change', () => {
+        if (ideSelect.value !== 'null') {
+            idekeyInput.disabled = true;
+            idekeyInput.value = ideSelect.value;
+            saveOptions();
+        } else {
+            idekeyInput.disabled = false;
+        }
+    });
 
-			$("#ide").val(isPredefined ? idekey : "null");
-			$("#idekey").prop('disabled', isPredefined);
-			$('#idekey').val(idekey);
+    idekeyInput.addEventListener('change', saveOptions);
+    tracetriggerInput.addEventListener('change', saveOptions);
+    profiletriggerInput.addEventListener('change', saveOptions);
+    disablePopupCheckbox.addEventListener('change', saveOptions);
+    useSessionStartCheckbox.addEventListener('change', saveOptions);
 
-			// Restore Trace Triggers
-			$("#tracetrigger").val(result.xdebugTraceTrigger || "");
+    saveButtons.forEach(button => {
+        button.addEventListener('click', saveOptions);
+    });
 
-			// Restore Profile Triggers
-			$("#profiletrigger").val(result.xdebugProfileTrigger || "");
-
-			// Restore Disable Popup
-			document.getElementById('disable-popup').checked = (result.xdebugDisablePopup === '1');
-
-			// Restore Use Session Start (Xdebug 3.x)
-			document.getElementById('use-session-start').checked = (result.xdebugUseSessionStart === '1');
-		});
-	}
-
-	$(function()
-	{
-		$("#ide").change(function ()
-		{
-			if ($("#ide").val() != "null")
-			{
-				$("#idekey").prop('disabled', true);
-				$("#idekey").val($("#ide").val());
-
-				save_options();
-			}
-			else
-			{
-				$("#idekey").prop('disabled', false);
-			}
-		});
-
-		$("#idekey").change(save_options);
-
-		// Persist Disable Popup on onChange event
-		$('#disable-popup').change(disablePopupChanged);
-
-		// Persist Use Session Start on onChange event
-		$('#use-session-start').change(save_options);
-
-		$('.save-button').click(save_options);
-
-		restore_options();
-	});
-
-	/**
-	 * Disable Popup checkbox changed, persist it.
-	 */
-	function disablePopupChanged() {
-		const $disablePopupSaved = $('.disable-popup-saved');
-
-		$disablePopupSaved.addClass('show');
-
-		// First clear interval
-		clearInterval(disablePopupTimeout);
-		// Hide after 2 seconds
-		disablePopupTimeout = setTimeout(() => $disablePopupSaved.removeClass('show'), 2000);
-
-		// Persist
-		save_options();
-
-		// In Manifest V3, we cannot reload the service worker directly.
-		// The popup setting will be automatically updated via storage.onChanged listener in background.js.
-	}
-
-})();
+    restoreOptions();
+});

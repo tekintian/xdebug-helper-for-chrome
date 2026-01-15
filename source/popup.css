@@ -1,85 +1,97 @@
-html,
-body {
-  font-family: 'Roboto', sans-serif;
-  font-size: 13px;
-  line-height: 1.4em;
+html, body {
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    line-height: 1.4em;
+    margin: 0;
+    padding: 0;
 }
 
-.togglelist {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
+#popup {
+    width: 120px;
+    padding: 8px;
+    margin: 0;
 }
 
-.togglelist li a {
-  display: block;
-  min-width: 70px;
-  line-height: 16px;
-  margin: 3px auto;
-  padding: 10px 20px;
-  background-color: #eee;
-  color: #000000;
-  text-decoration: none;
+#popup label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px 12px;
+    margin: 3px 0;
+    background-color: #eee;
+    border-radius: 3px;
+    transition: background-color 0.2s;
 }
 
-.togglelist li a .material-icons {
-  font-size: 18px;
-  line-height: 0;
-  position: relative;
-  top: 4px;
-  margin-right: 5px;
+#popup label:first-of-type {
+    margin-top: 0;
+    border-top-left-radius: 3px 3px;
+    border-top-right-radius: 3px 3px;
 }
 
-.togglelist li:first-child a {
-  margin-top: 0;
-  border-top-left-radius: 3px 3px;
-  border-top-right-radius: 3px 3px;
+#popup label:last-of-type {
+    margin-bottom: 0;
+    border-bottom-left-radius: 3px 3px;
+    border-bottom-right-radius: 3px 3px;
 }
 
-.togglelist li:last-child a {
-  margin-bottom: 0;
-  border-bottom-left-radius: 3px 3px;
-  border-bottom-right-radius: 3px 3px;
+#popup label:hover,
+#popup label:focus-within {
+    background-color: #4FC3F7;
+    color: #000;
+    outline: none;
 }
 
-.togglelist li a:hover, .togglelist li a:focus, .togglelist li a:hover .material-icons {
-  background-color: #4FC3F7;
-  color: #000;
-  outline: none;
+#popup input[type="radio"] {
+    display: none;
 }
 
-.togglelist li .active {
-  background: #039BE5;
-  color: #ffffff;
+#popup input[type="radio"]:checked + span,
+#popup input[type="radio"]:checked + span + span {
+    font-weight: bold;
 }
 
-.togglelist li .active .material-icons {
-  color: #ffffff;
+#popup label:has(input[type="radio"]:checked) {
+    background: #039BE5;
+    color: #ffffff;
 }
 
-.inlineicon {
-  vertical-align: middle;
-  min-width: 16px;
-  min-height: 16px;
-  padding: 0 6px 0 0;
+.icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
 }
 
-.hotkey {
-  text-decoration: underline;
+.icon-debug {
+    background-image: url('../images/bug.png');
 }
 
-.color--green {
-  color: #4CAF50;
+.icon-profile {
+    background-image: url('../images/clock.png');
 }
 
-.color--blue {
-  color: #039BE5;
+.icon-trace {
+    background-image: url('../images/script.png');
 }
 
-.color--deep-purple {
-  color: #673AB7;
+.icon-disable {
+    background-image: url('../images/bug-gray.png');
 }
 
-.color--gray {
-  color: #6D6D6D;
+#options {
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+    padding: 5px;
+    color: #039BE5;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+#options:hover {
+    text-decoration: underline;
 }

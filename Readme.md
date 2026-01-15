@@ -2,6 +2,10 @@
 
 Easy debugging, profiling and tracing for PHP with Xdebug
 
+Xdebug Helper for Chrome makes it incredibly easy to enable or disable Xdebug debugging, profiling, and tracing. Just click the icon in your browser toolbar to quickly switch between modes without manually setting cookies or modifying URL parameters.
+
+[简体中文版请点击这里](./Readme_cn.md)
+
 ## Overview
 
 Xdebug Helper is a Chrome extension designed for PHP developers that makes it incredibly easy to enable or disable [Xdebug](http://xdebug.org/) debugging, profiling, and tracing.

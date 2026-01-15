@@ -1,6 +1,8 @@
 # Xdebug Helper for Chrome
 
-Xdebug调试助手 - 轻松启用/禁用PHP代码的调试、分析和跟踪功能
+Xdebug 调试助手 - 轻松启用/禁用 PHP 代码的调试、分析和跟踪功能
+
+Xdebug Helper for Chrome 让使用 Xdebug 进行代码调试、性能分析和代码跟踪变得极其简单。只需点击浏览器工具栏上的图标，即可快速切换调试模式，无需手动设置 Cookie 或修改 URL 参数。
 
 ## 简介
 

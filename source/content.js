@@ -29,7 +29,7 @@ var xdebug = (function() {
 		}
 
 		// Extract the cookie content
-		return unescape(document.cookie.substring(cookieStartIndex + prefix.length, cookieEndIndex));
+		return decodeURIComponent(document.cookie.substring(cookieStartIndex + prefix.length, cookieEndIndex));
 	}
 
 	// Remove a cookie
@@ -38,15 +38,40 @@ var xdebug = (function() {
 		setCookie(name, null, -1);
 	}
 
+	// Get URL parameter
+	function getUrlParameter(name)
+	{
+		var regex = new RegExp('[?&]' + name + '=([^&#]*)', 'i');
+		var results = regex.exec(window.location.href);
+		return results === null ? null : results[1];
+	}
+
+	// Reload page with XDEBUG_SESSION_START parameter
+	function reloadWithSessionStart(idekey)
+	{
+		var url = new URL(window.location.href);
+		// Clear any existing Xdebug URL parameters
+		url.searchParams.delete('XDEBUG_SESSION_START');
+		url.searchParams.delete('XDEBUG_PROFILE');
+		url.searchParams.delete('XDEBUG_TRACE');
+		// Set the new session start parameter
+		url.searchParams.set('XDEBUG_SESSION_START', idekey);
+		// Delay reload to allow message response to be sent
+		setTimeout(function() {
+			window.location.href = url.toString();
+		}, 100);
+	}
+
 	// Public methods
 	var exposed = {
 		// Handles messages from other extension parts
-		messageListener : function(request, sender, sendResponse)
+		messageListener : function(request, _sender, sendResponse)
 		{
 			var newStatus,
-				idekey = "XDEBUG_ECLIPSE",
+				idekey = "vsc",
 				traceTrigger = idekey,
-				profileTrigger = idekey;
+				profileTrigger = idekey,
+				useSessionStart = false;
 
 			// Use the IDE key from the request, if any is given
 			if (request.idekey)
@@ -61,89 +86,128 @@ var xdebug = (function() {
 			{
 				profileTrigger = request.profileTrigger;
 			}
+			if (request.useSessionStart)
+			{
+				useSessionStart = request.useSessionStart;
+			}
 
 			// Execute the requested command
 			if (request.cmd == "getStatus")
 			{
-				newStatus = exposed.getStatus(idekey, traceTrigger, profileTrigger);
+				newStatus = exposed.getStatus(idekey, traceTrigger, profileTrigger, useSessionStart);
 			}
 			else if (request.cmd == "toggleStatus")
 			{
-				newStatus = exposed.toggleStatus(idekey, traceTrigger, profileTrigger);
+				newStatus = exposed.toggleStatus(idekey, traceTrigger, profileTrigger, useSessionStart);
 			}
 			else if (request.cmd == "setStatus")
 			{
-				newStatus = exposed.setStatus(request.status, idekey, traceTrigger, profileTrigger);
+				newStatus = exposed.setStatus(request.status, idekey, traceTrigger, profileTrigger, useSessionStart);
 			}
 
 			// Respond with the current status
 			sendResponse({ status: newStatus });
 		},
 
-		// Get current state
-		getStatus : function(idekey, traceTrigger, profileTrigger)
+	// Get current state
+	getStatus : function(idekey, traceTrigger, profileTrigger, useSessionStart)
+	{
+		var status = 0;
+
+		// Check for XDEBUG_SESSION_START parameter in URL (debugging mode)
+		if (useSessionStart && getUrlParameter('XDEBUG_SESSION_START') == idekey)
 		{
-			var status = 0;
+			status = 1;
+		}
+		// Fallback to cookie method for debugging
+		else if (getCookie("XDEBUG_SESSION") == idekey)
+		{
+			status = 1;
+		}
+		// Check for profiling
+		else if (getCookie("XDEBUG_PROFILE") == profileTrigger)
+		{
+			status = 2;
+		}
+		// Check for tracing
+		else if (getCookie("XDEBUG_TRACE") == traceTrigger)
+		{
+			status = 3;
+		}
 
-			if (getCookie("XDEBUG_SESSION") == idekey)
-			{
-				status = 1;
-			}
-			else if (getCookie("XDEBUG_PROFILE") == profileTrigger)
-			{
-				status = 2;
-			}
-			else if (getCookie("XDEBUG_TRACE") == traceTrigger)
-			{
-				status = 3;
-			}
-
-			return status;
-		},
+		return status;
+	},
 
 		// Toggle to the next state
-		toggleStatus : function(idekey, traceTrigger, profileTrigger)
+		toggleStatus : function(idekey, traceTrigger, profileTrigger, useSessionStart)
 		{
-			var nextStatus = (exposed.getStatus(idekey, traceTrigger, profileTrigger) + 1) % 4;
-			return exposed.setStatus(nextStatus, idekey, traceTrigger, profileTrigger);
+			var nextStatus = (exposed.getStatus(idekey, traceTrigger, profileTrigger, useSessionStart) + 1) % 4;
+			return exposed.setStatus(nextStatus, idekey, traceTrigger, profileTrigger, useSessionStart);
 		},
 
-		// Set the state
-		setStatus : function(status, idekey, traceTrigger, profileTrigger)
+	// Set the state
+	setStatus : function(status, idekey, traceTrigger, profileTrigger, useSessionStart)
+	{
+		if (status == 1)
 		{
-			if (status == 1)
+			// Set debugging on
+			if (useSessionStart)
 			{
-				// Set debugging on
+				// Use XDEBUG_SESSION_START parameter (Xdebug 3.x preferred method)
+				// Also set cookie to maintain session during navigation
 				setCookie("XDEBUG_SESSION", idekey, 365);
-				deleteCookie("XDEBUG_PROFILE");
-				deleteCookie("XDEBUG_TRACE");
-			}
-			else if (status == 2)
-			{
-				// Set profiling on
-				deleteCookie("XDEBUG_SESSION");
-				setCookie("XDEBUG_PROFILE", profileTrigger, 365);
-				deleteCookie("XDEBUG_TRACE");
-
-			}
-			else if (status == 3)
-			{
-				// Set tracing on
-				deleteCookie("XDEBUG_SESSION");
-				deleteCookie("XDEBUG_PROFILE");
-				setCookie("XDEBUG_TRACE", traceTrigger, 365);
+				reloadWithSessionStart(idekey);
 			}
 			else
 			{
-				// Disable all Xdebug functions
-				deleteCookie("XDEBUG_SESSION");
-				deleteCookie("XDEBUG_PROFILE");
-				deleteCookie("XDEBUG_TRACE");
+				// Use cookie method (Xdebug 2.x compatible)
+				setCookie("XDEBUG_SESSION", idekey, 365);
 			}
-
-			// Return the new status
-			return exposed.getStatus(idekey, traceTrigger, profileTrigger);
+			// Clear other states
+			deleteCookie("XDEBUG_PROFILE");
+			deleteCookie("XDEBUG_TRACE");
+			deleteCookie("XDEBUG_DISABLED");
 		}
+		else if (status == 2)
+		{
+			// Set profiling on
+			deleteCookie("XDEBUG_SESSION");
+			setCookie("XDEBUG_PROFILE", profileTrigger, 365);
+			deleteCookie("XDEBUG_TRACE");
+			deleteCookie("XDEBUG_DISABLED");
+		}
+		else if (status == 3)
+		{
+			// Set tracing on
+			deleteCookie("XDEBUG_SESSION");
+			deleteCookie("XDEBUG_PROFILE");
+			setCookie("XDEBUG_TRACE", traceTrigger, 365);
+			deleteCookie("XDEBUG_DISABLED");
+		}
+		else
+		{
+			// Disable all Xdebug functions
+			deleteCookie("XDEBUG_SESSION");
+			deleteCookie("XDEBUG_PROFILE");
+			deleteCookie("XDEBUG_TRACE");
+			deleteCookie("XDEBUG_DISABLED");
+			setCookie("XDEBUG_DISABLED", 1);
+
+			// Remove XDEBUG_SESSION_START parameter from URL if present
+			if (useSessionStart && getUrlParameter('XDEBUG_SESSION_START'))
+			{
+				var url = new URL(window.location.href);
+				url.searchParams.delete('XDEBUG_SESSION_START');
+				// Delay reload to allow message response to be sent
+				setTimeout(function() {
+					window.location.href = url.toString();
+				}, 100);
+			}
+		}
+
+		// Return the new status
+		return exposed.getStatus(idekey, traceTrigger, profileTrigger, useSessionStart);
+	}
 	};
 
 	return exposed;
@@ -151,3 +215,7 @@ var xdebug = (function() {
 
 // Attach the message listener
 chrome.runtime.onMessage.addListener(xdebug.messageListener);
+// 默认开启xdebug
+if(document.cookie.indexOf("XDEBUG_DISABLED=1")<0){
+	xdebug.setStatus(1,'vsc');
+}

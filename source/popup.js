@@ -1,71 +1,91 @@
 $(function() {
-	var ideKey = "XDEBUG_ECLIPSE";
+	var ideKey = "vsc";
 	var traceTrigger = ideKey;
 	var profileTrigger = ideKey;
+	var useSessionStart = false;
 
-	// Check if localStorage is available and get the ideKey out of it if any
-	if (localStorage)
-	{
-		if (localStorage["xdebugIdeKey"])
+	// Get the ideKey from chrome.storage
+	chrome.storage.local.get(['xdebugIdeKey', 'xdebugTraceTrigger', 'xdebugProfileTrigger', 'xdebugUseSessionStart'], function(result) {
+		ideKey = result.xdebugIdeKey || "vsc";
+		traceTrigger = result.xdebugTraceTrigger || ideKey;
+		profileTrigger = result.xdebugProfileTrigger || ideKey;
+		useSessionStart = result.xdebugUseSessionStart === '1';
+
+		// Request the current state from the active tab
+		chrome.tabs.query({ active: true, currentWindow: true }, function(tabs)
 		{
-			ideKey = localStorage["xdebugIdeKey"];
-		}
+			if (tabs.length > 0 && tabs[0].url && tabs[0].url.startsWith("http")) {
+				chrome.tabs.sendMessage(
+					tabs[0].id,
+					{
+						cmd: "getStatus",
+						idekey: ideKey,
+						traceTrigger: traceTrigger,
+						profileTrigger: profileTrigger,
+						useSessionStart: useSessionStart
+					},
+					function(response)
+					{
+						if (chrome.runtime.lastError) {
+							console.log("Error: ", chrome.runtime.lastError.message);
+							return;
+						}
 
-		if (localStorage["xdebugTraceTrigger"])
-		{
-			traceTrigger = localStorage["xdebugTraceTrigger"];
-		}
-
-		if (localStorage["xdebugProfileTrigger"])
-		{
-			profileTrigger = localStorage["xdebugProfileTrigger"];
-		}
-	}
-
-	// Request the current state from the active tab
-	chrome.tabs.query({ active: true, windowId: chrome.windows.WINDOW_ID_CURRENT }, function(tabs)
-	{
-		chrome.tabs.sendMessage(
-				tabs[0].id,
-				{
-					cmd: "getStatus",
-					idekey: ideKey,
-					traceTrigger: traceTrigger,
-					profileTrigger: profileTrigger
-				},
-				function(response)
-				{
-					// Highlight the correct option
-					$('a[data-status="' + response.status + '"]').addClass("active");
-				}
-			);
+						// Highlight correct option
+						if (response && response.status !== undefined) {
+							$('a[data-status="' + response.status + '"]').addClass("active");
+						}
+					}
+				);
+			}
+		});
 	});
 
 	// Attach handler when user clicks on
-	$("a").on("click", function(eventObject) {
+	$("a").on("click", function(_eventObject) {
 		var newStatus = $(this).data("status");
 
 		// Set the new state on the active tab
-		chrome.tabs.query({ active: true, windowId: chrome.windows.WINDOW_ID_CURRENT }, function(tabs)
+		chrome.tabs.query({ active: true, currentWindow: true }, function(tabs)
 		{
-			chrome.tabs.sendMessage(
-				tabs[0].id,
-				{
-					cmd: "setStatus",
-					status: newStatus,
-					idekey: ideKey,
-					traceTrigger : traceTrigger,
-					profileTrigger : profileTrigger
-				},
-				function(response)
-				{
-					// Make the backgroundpage update the icon and close the popup
-					chrome.runtime.getBackgroundPage(function(backgroundPage) {
-						backgroundPage.updateIcon(response.status, tabs[0].id);
-						window.close();
-					});
-				}
-			);
+			if (tabs.length > 0 && tabs[0].url && tabs[0].url.startsWith("http")) {
+				chrome.tabs.sendMessage(
+					tabs[0].id,
+					{
+						cmd: "setStatus",
+						status: newStatus,
+						idekey: ideKey,
+						traceTrigger : traceTrigger,
+						profileTrigger : profileTrigger,
+						useSessionStart : useSessionStart
+					},
+					function(response)
+					{
+						if (chrome.runtime.lastError) {
+							console.log("Error: ", chrome.runtime.lastError.message);
+							window.close();
+							return;
+						}
+
+						// In Manifest V3, we cannot access the background page directly.
+						// Instead, we send a message to the service worker to update the icon.
+						if (response && response.status !== undefined) {
+							chrome.runtime.sendMessage({
+								cmd: "updateIcon",
+								status: response.status,
+								tabId: tabs[0].id
+							}, function() {
+								window.close();
+							});
+						} else {
+							window.close();
+						}
+					}
+				);
+			} else {
+				// Close popup if not on a valid page
+				window.close();
+			}
 		});
 	});
 

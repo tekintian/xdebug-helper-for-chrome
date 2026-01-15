@@ -21,7 +21,7 @@
 
 			<h3>Introduction</h3>
 			<p class="contentTxt">
-				First install and configure <a target="_blank" class="txtlink" href="http://www.xdebug.org/docs/install">Xdebug</a>, then set your IDE key below. Now tell Xdebug to debug, profile or trace by clicking the little bug in the addressbar:
+				First <a href="https://dev.tekin.cn/tag/xdebug" target="_blank" class="txtlink">Install Xdebug</a> and configure <a target="_blank" class="txtlink" href="https://xdebug.org/docs/install">Xdebug</a>,   then set your IDE key below. Now tell Xdebug to debug, profile or trace by clicking the little bug in the addressbar:
 			</p>
 			<p class="contentTxt">
 				<i class="material-icons color--gray">bug_report</i> Debugging, profiling &amp; tracing disabled<br />
@@ -35,7 +35,9 @@
 			<p class="note">Select your IDE to use the default sessionkey or choose other to use a custom key.</p>
 			<p>
 				<select id="ide">
-					<option value="XDEBUG_ECLIPSE">Eclipse</option>
+					<option value="vsc">Visual Studio Code</option>
+					<option value="idea">IntelliJ IDEA</option>
+					<option value="eclipse">Eclipse</option>
 					<option value="netbeans-xdebug">Netbeans</option>
 					<option value="macgdbp">MacGDBp</option>
 					<option value="PHPSTORM">PhpStorm</option>
@@ -74,8 +76,20 @@
                 <span class="disable-popup-saved fade">Saved</span>
 			</p>
 
+			<h3>Xdebug 3.x Mode</h3>
+			<p class="note">
+				For Xdebug 3.x, you can use the <code>XDEBUG_SESSION_START</code> URL parameter instead of cookies.
+				This is the recommended method for Xdebug 3.x and later versions.
+			</p>
+			<p>
+                <label>
+                    <input type="checkbox" id="use-session-start" value="1">
+                    <span>Use XDEBUG_SESSION_START URL parameter (Xdebug 3.x)</span>
+                </label>
+			</p>
+
 			<footer id="footer">
-				<a href="https://github.com/mac-cain13/xdebug-helper-for-chrome" class="contribute" target="_blank">
+				<a href="https://github.com/tekintian/xdebug-helper-for-chrome" class="contribute" target="_blank">
 					Feel free to submit ideas, bugs and pull request to our <span>Github project</span>
 				</a>
 			</footer>

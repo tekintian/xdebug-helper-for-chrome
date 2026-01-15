@@ -1,9 +1,8 @@
 {
-	"name": "Xdebug helper",
-	"description": "Easy debugging, profiling and tracing extension for Xdebug, PHPStorm and VSCode, with support for multiple tabs and windows.",
-	"version": "2.1.0",
-	"author": "Mathijs Kadijk",
-
+	"name": "Xdebug Helper",
+	"description": "Xdebug调试助手 - 轻松启用/禁用PHP代码的调试、分析和跟踪功能，支持Xdebug 2.x和3.x",
+	"version": "3.0.0",
+	"author": "tekintian",
 	"manifest_version": 3,
 	"minimum_chrome_version": "88",
 	"permissions": [ "tabs", "storage" ],

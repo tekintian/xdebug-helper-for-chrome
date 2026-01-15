@@ -1,82 +1,82 @@
 # Xdebug Helper for Chrome
 
-Xdebug调试助手 - 轻松启用/禁用PHP代码的调试、分析和跟踪功能
+Easy debugging, profiling and tracing for PHP with Xdebug
 
-## 简介
+## Overview
 
-Xdebug Helper 是一个Chrome浏览器扩展，专为PHP开发者设计，让使用 [Xdebug](http://xdebug.org/) 进行代码调试、性能分析和代码跟踪变得极其简单。
+Xdebug Helper is a Chrome extension designed for PHP developers that makes it incredibly easy to enable or disable [Xdebug](http://xdebug.org/) debugging, profiling, and tracing.
 
-通过点击浏览器工具栏上的图标，你就可以快速切换Xdebug的调试模式，无需手动设置Cookie或修改URL参数。
+Simply click the icon in your browser toolbar to quickly switch between Xdebug modes without manually setting cookies or modifying URL parameters.
 
-## 主要特性
+## Key Features
 
-- ✅ **简单易用**：一键切换调试、分析、跟踪模式
-- ✅ **Xdebug 3.x 支持**：原生支持 XDEBUG_SESSION_START URL 参数
-- ✅ **多IDE兼容**：支持 VSCode、PHPStorm、IntelliJ IDEA、Eclipse、NetBeans 等
-- ✅ **Manifest V3**：采用最新扩展标准，性能更优
-- ✅ **零依赖**：纯原生JavaScript，无jQuery等外部库依赖
-- ✅ **多标签页支持**：每个标签页独立控制调试状态
+- ✅ **Simple to Use**: One-click toggle between debug, profile, and trace modes
+- ✅ **Xdebug 3.x Support**: Native support for XDEBUG_SESSION_START URL parameter
+- ✅ **Multi-IDE Compatible**: Supports VSCode, PhpStorm, IntelliJ IDEA, Eclipse, NetBeans, and more
+- ✅ **Manifest V3**: Built with the latest extension standards for better performance
+- ✅ **Zero Dependencies**: Pure native JavaScript, no jQuery or external libraries
+- ✅ **Multi-tab Support**: Independent debug state control for each tab
 
-## 安装方式
+## Installation
 
-### Chrome Web Store（推荐）
+### Development Version (Recommended)
 
-前往 [Chrome Web Store](https://chrome.google.com/webstore/detail/eadndfjplgieldjbigjakmdgkmoaaaoc) 安装最新版本。
+1. Download the source code: [GitHub](https://github.com/tekintian/xdebug-helper-for-chrome/archive/master.zip)
+2. Open Chrome and navigate to `chrome://extensions/`
+3. Enable "Developer mode" (toggle in the top right corner)
+4. Click "Load unpacked"
+5. Select the extracted source directory
 
-### 开发版本
+### Chrome Web Store
 
-1. 下载源码：[GitHub](https://github.com/tekintian/xdebug-helper-for-chrome/archive/master.zip)
-2. 打开 Chrome，访问 `chrome://extensions/`
-3. 开启右上角的「开发者模式」
-4. 点击「加载已解压的扩展程序」
-5. 选择解压后的源码目录
+Visit the [Chrome Web Store](https://chrome.google.com/webstore/detail/eadndfjplgieldjbigjakmdgkmoaaaoc) to install the latest version.
 
-## 版本历史
+## Changelog
 
 ### Version 3.0.0
 
-#### 重大重构与现代化
-- **移除 jQuery 依赖**：全面采用原生 JavaScript，大幅减小扩展体积
-- **移除 keymaster.js**：使用 Chrome 原生命令处理键盘快捷键
-- **代码现代化**：使用 ES6+ 语法（async/await、箭头函数等）
-- **UI 重设计**：简化界面，采用 CSS 图标替代图标字体
-- **移除外部依赖**：不再依赖 Google Fonts 和 Material Icons
+#### Major Refactoring & Modernization
+- **Removed jQuery Dependency**: Full migration to native JavaScript, significantly reducing extension size
+- **Removed keymaster.js**: Using Chrome's native commands for keyboard shortcuts
+- **Code Modernization**: ES6+ syntax (async/await, arrow functions, etc.)
+- **UI Redesign**: Simplified interface with CSS-based icons
+- **No External Dependencies**: No longer depends on Google Fonts or Material Icons
 
-#### Bug 修复
-- 修复消息端口关闭错误（Message port closed before response）
-- 移除页面加载时自动启用Xdebug的逻辑，避免冲突
-- 优化异步操作处理
+#### Bug Fixes
+- Fixed message port closure errors
+- Removed auto-enable Xdebug logic on page load to prevent conflicts
+- Optimized async operation handling
 
 ### Version 2.0.0
 
-#### Manifest V3 升级
-- 升级到 Manifest V3，最低支持 Chrome 88
-- 后台脚本改为 Service Worker
-- 从 localStorage 迁移到 chrome.storage API
+#### Manifest V3 Upgrade
+- Upgraded to Manifest V3, minimum Chrome version 88
+- Background script changed to Service Worker
+- Migrated from localStorage to chrome.storage API
 
-#### Xdebug 3.x 支持
-- 新增 XDEBUG_SESSION_START URL 参数支持
-- Cookie + URL 混合模式，保证页面导航时调试状态保持
-- 完全向后兼容 Xdebug 2.x（Cookie模式）
+#### Xdebug 3.x Support
+- Added XDEBUG_SESSION_START URL parameter support
+- Cookie + URL hybrid mode to maintain debug state during page navigation
+- Full backward compatibility with Xdebug 2.x (Cookie mode)
 
-#### 新功能
-- IDE Key 预设选择（VSCode、PHPStorm、IntelliJ IDEA 等）
-- 自定义 Trace/Profile 触发器
-- 禁用弹窗选项，支持直接点击切换
-- 增强的错误处理
+#### New Features
+- IDE Key presets (VSCode, PhpStorm, IntelliJ IDEA, etc.)
+- Custom Trace/Profile trigger values
+- Disable popup option for direct click-to-toggle
+- Enhanced error handling
 
-## 快捷键
+## Keyboard Shortcuts
 
-| 快捷键 | 功能 |
-|--------|------|
-| `Ctrl+Shift+X` (Mac: `Cmd+Shift+X`) | 打开扩展弹窗 |
-| `Alt+Shift+X` | 直接切换调试状态 |
+| Shortcut | Function |
+|----------|----------|
+| `Ctrl+Shift+X` (Mac: `Cmd+Shift+X`) | Open extension popup |
+| `Alt+Shift+X` | Directly toggle debug state |
 
-## 配置说明
+## Configuration
 
-### IDE Key 设置
+### IDE Key Settings
 
-从下拉菜单选择你的 IDE：
+Select your IDE from the dropdown menu:
 
 | IDE | IDE Key |
 |-----|---------|
@@ -86,92 +86,92 @@ Xdebug Helper 是一个Chrome浏览器扩展，专为PHP开发者设计，让使
 | Eclipse | `eclipse` |
 | NetBeans | `netbeans-xdebug` |
 | MacGDBp | `macgdbp` |
-| 自定义 | 输入任意值 |
+| Custom | Enter any value |
 
-### 调试模式说明
+### Debug Mode Status
 
-| 状态 | 图标 | 说明 |
-|------|------|------|
-| 禁用 | 🐛 灰色 | 禁用所有Xdebug功能 |
-| 调试 | 🐛 绿色 | 启用断点调试 |
-| 分析 | ⏰ 蓝色 | 启用性能分析 |
-| 跟踪 | 📄 紫色 | 启用代码跟踪 |
+| Status | Icon | Description |
+|--------|------|-------------|
+| Disabled | 🐛 Gray | All Xdebug functions disabled |
+| Debug | 🐛 Green | Enable breakpoint debugging |
+| Profile | ⏰ Blue | Enable performance profiling |
+| Trace | 📄 Purple | Enable code tracing |
 
-### Xdebug 3.x 模式
+### Xdebug 3.x Mode
 
-勾选「使用 XDEBUG_SESSION_START URL 参数」后：
-- 首次触发时使用 `?XDEBUG_SESSION_START=<idekey>` URL参数
-- 同时设置 Cookie 以保持页面导航时的调试状态
-- 推荐 Xdebug 3.0 及以上版本使用
+When "Use XDEBUG_SESSION_START URL parameter" is enabled:
+- Initial trigger uses `?XDEBUG_SESSION_START=<idekey>` URL parameter
+- Also sets cookies to maintain debug state during page navigation
+- Recommended for Xdebug 3.0 and later versions
 
-### 禁用弹窗
+### Disable Popup
 
-勾选此选项后：
-- 点击扩展图标直接切换调试状态（不显示弹窗）
-- 只支持在「调试」和「禁用」之间切换
+When this option is checked:
+- Clicking the extension icon toggles debug state directly (no popup)
+- Only toggles between "Debug" and "Disabled" modes
 
-## 工作原理
+## How It Works
 
-### 调试模式（Status 1）
-- **Cookie 模式**：设置 `XDEBUG_SESSION=<idekey>` Cookie
-- **URL 参数模式**：设置 `XDEBUG_SESSION=<idekey>` Cookie 并在URL中添加 `?XDEBUG_SESSION_START=<idekey>`，然后重新加载页面
+### Debug Mode (Status 1)
+- **Cookie Mode**: Sets `XDEBUG_SESSION=<idekey>` cookie
+- **URL Parameter Mode**: Sets `XDEBUG_SESSION=<idekey>` cookie AND adds `?XDEBUG_SESSION_START=<idekey>` to URL, then reloads the page
 
-### 分析模式（Status 2）
-设置 `XDEBUG_PROFILE=<trigger>` Cookie 启用性能分析
+### Profile Mode (Status 2)
+Sets `XDEBUG_PROFILE=<trigger>` cookie to enable performance profiling
 
-### 跟踪模式（Status 3）
-设置 `XDEBUG_TRACE=<trigger>` Cookie 启用代码跟踪
+### Trace Mode (Status 3)
+Sets `XDEBUG_TRACE=<trigger>` cookie to enable code tracing
 
-### 禁用模式（Status 0）
-清除所有 Xdebug 相关的 Cookie 和 URL 参数，设置 `XDEBUG_DISABLED=1` Cookie
+### Disabled Mode (Status 0)
+Clears all Xdebug-related cookies and URL parameters, sets `XDEBUG_DISABLED=1` cookie
 
-## 开发
+## Development
 
-### 贡献代码
+### Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!
 
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-### 项目结构
+### Project Structure
 
 ```
 xdebug-helper-for-chrome/
 ├── source/
-│   ├── manifest.json      # 扩展配置文件
-│   ├── background.js      # Service Worker 后台脚本
-│   ├── content.js         # 内容脚本（注入到网页）
-│   ├── popup.js           # 弹窗逻辑
-│   ├── popup.html         # 弹窗页面
-│   ├── popup.css          # 弹窗样式
-│   ├── options.js         # 选项页逻辑
-│   ├── options.html       # 选项页面
-│   ├── options.css        # 选项页样式
-│   └── images/            # 图标资源
+│   ├── manifest.json      # Extension manifest
+│   ├── background.js      # Service Worker script
+│   ├── content.js         # Content script (injected into pages)
+│   ├── popup.js           # Popup logic
+│   ├── popup.html         # Popup page
+│   ├── popup.css          # Popup styles
+│   ├── options.js         # Options page logic
+│   ├── options.html       # Options page
+│   ├── options.css        # Options page styles
+│   └── images/            # Icon resources
 └── Readme.md
 ```
 
-## Firefox 版本
+## Firefox Version
 
-Firefox 用户可以尝试 [BrianGilbert 开发的 Firefox 版本](https://github.com/BrianGilbert/xdebug-helper-for-firefox)。
+Firefox users can try the [Firefox version developed by BrianGilbert](https://github.com/BrianGilbert/xdebug-helper-for-firefox).
 
-## 许可证
+## License
 
-本项目采用 [MIT 许可证](./source/License) 开源，可自由用于商业和非商业项目。
+This project is licensed under the [MIT License](./source/License), free for use in both commercial and non-commercial projects.
 
-## 致谢
+## Acknowledgments
 
-- [remailednet](http://blog.remailed.net) 创建了原始的 [XDebug Enabler](https://chrome.google.com/webstore/detail/eippbhbeglgcphcjmpjcjinjamabeoln)
-- [Guilherme Pim](https://github.com/pimguilherme) 贡献了 Manifest V2 版本
-- [所有贡献者](https://github.com/tekintian/xdebug-helper-for-chrome/graphs/contributors) 的代码贡献
+- [remailednet](http://blog.remailed.net) for creating the original [XDebug Enabler](https://chrome.google.com/webstore/detail/eippbhbeglgcphcjmpjcjinjamabeoln)
+- [Guilherme Pim](https://github.com/pimguilherme) for contributing the Manifest V2 version
+- [All contributors](https://github.com/tekintian/xdebug-helper-for-chrome/graphs/contributors) for their code contributions
 
-## 相关链接
+## Related Links
 
-- [Xdebug 官方文档](https://xdebug.org/docs)
-- [Chrome 扩展开发文档](https://developer.chrome.com/docs/extensions/)
-- [GitHub 仓库](https://github.com/tekintian/xdebug-helper-for-chrome)
-- [提交问题](https://github.com/tekintian/xdebug-helper-for-chrome/issues)
+- [Xdebug Official Documentation](https://xdebug.org/docs)
+- [Chrome Extensions Documentation](https://developer.chrome.com/docs/extensions/)
+- [GitHub Repository](https://github.com/tekintian/xdebug-helper-for-chrome)
+- [Report Issues](https://github.com/tekintian/xdebug-helper-for-chrome/issues)
